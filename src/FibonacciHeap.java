@@ -4,6 +4,16 @@
  * An implementation of fibonacci heap over non-negative integers.
  */
 public class FibonacciHeap {
+    private HeapNode min;
+    private int size;
+
+    /**
+     * Default constructor to initialize an empty heap.
+     */
+    public FibonacciHeap() {
+        this.min = null;
+        this.size = 0;
+    }
 
     /**
      * public boolean empty()
@@ -14,7 +24,7 @@ public class FibonacciHeap {
      * is empty.
      */
     public boolean empty() {
-        return false; // should be replaced by student code
+        return size == 0;
     }
 
     /**
@@ -23,7 +33,23 @@ public class FibonacciHeap {
      * Creates a node (of type HeapNode) which contains the given key, and inserts it into the heap.
      */
     public HeapNode insert(int key) {
-        return new HeapNode(5); // should be replaced by student code
+        HeapNode node;
+        if (empty()) {
+            node = new HeapNode(key);
+            min = node;
+        } else {
+            // Insert new node into root list next to current minimum
+            node = new HeapNode(key, min.next, min);
+            min.next.prev = node;
+            min.next = node;
+
+            // Update minimum pointer if needed
+            if (key < min.key) {
+                min = node;
+            }
+        }
+        size++;
+        return node;
     }
 
     /**
@@ -32,7 +58,11 @@ public class FibonacciHeap {
      * Delete the node containing the minimum key.
      */
     public void deleteMin() {
-        return; // should be replaced by student code
+        if (min == null) {
+            return;
+        }
+
+        HeapNode min = this.min;
 
     }
 
@@ -42,7 +72,7 @@ public class FibonacciHeap {
      * Return the node of the heap whose key is minimal.
      */
     public HeapNode findMin() {
-        return new HeapNode(5);// should be replaced by student code
+        return min;
     }
 
     /**
@@ -51,7 +81,23 @@ public class FibonacciHeap {
      * Meld the heap with heap2
      */
     public void meld(FibonacciHeap heap2) {
-        return; // should be replaced by student code
+        if (empty()) {
+            this.min = heap2.min;
+            this.size = heap2.size;
+            return;
+        }
+
+        if (!heap2.empty()) {
+            // Insert heap2's root list next to this heap's minimum
+            concatenate(this.min, heap2.min);
+
+            // Update minimum pointer if needed
+            if (heap2.min.key < this.min.key) {
+                min = heap2.min;
+            }
+
+            this.size += heap2.size;
+        }
     }
 
     /**
@@ -60,7 +106,7 @@ public class FibonacciHeap {
      * Return the number of elements in the heap
      */
     public int size() {
-        return 0; // should be replaced by student code
+        return size;
     }
 
     /**
@@ -125,6 +171,21 @@ public class FibonacciHeap {
         return 0; // should be replaced by student code
     }
 
+    //************************************************** Helper Methods ***********************************************
+
+    /**
+     * Insert node2's root list into node1's root list.
+     * @param node1 root from the list that is being melded into
+     * @param node2 root from the list being melded into node1's list
+     */
+    private void concatenate(HeapNode node1, HeapNode node2) {
+        // TODO: check this for errors
+        node2.prev.next = node1.next;
+        node1.next.prev = node2.prev;
+        node2.prev = node1;
+        node1.next = node2;
+    }
+
     /**
      * public class HeapNode
      * <p>
@@ -133,7 +194,39 @@ public class FibonacciHeap {
      * another file
      */
     public class HeapNode {
+        private int key;
+        private int rank;
+        private boolean isMarked;
+        private HeapNode child;
+        private HeapNode next;
+        private HeapNode prev;
+        private HeapNode parent;
+
         public HeapNode(int key) {
+            this(key, 0, false, null, null, null, null);
+        }
+
+        private HeapNode(int key, HeapNode next, HeapNode prev) {
+            this(key, 0, false, null, next, prev, null);
+        }
+
+        private HeapNode(int key, int rank, boolean isMarked,
+                         HeapNode child, HeapNode next, HeapNode prev, HeapNode parent) {
+            this.key = key;
+            this.rank = rank;
+            this.isMarked = isMarked;
+            this.child = child;
+            if (next != null) {
+                this.next = next;
+            } else {
+                this.next = this;
+            }
+            if (prev != null) {
+                this.prev = prev;
+            } else {
+                this.prev = this;
+            }
+            this.parent = parent;
         }
     }
 }
