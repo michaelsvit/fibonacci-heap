@@ -58,11 +58,41 @@ public class FibonacciHeap {
      * Delete the node containing the minimum key.
      */
     public void deleteMin() {
-        if (min == null) {
+        if (empty()) {
             return;
         }
 
-        HeapNode min = this.min;
+        if (min.child != null) {
+            // Set parent pointer of all children to null
+            HeapNode iterator = min.child;
+            do {
+                iterator.parent = null;
+                iterator = iterator.next;
+            } while (iterator != min);
+
+            // Add list of children as new roots into the heap
+            concatenate(min, min.child);
+        } else if (min.next == min) {
+            // min is the only node in the heap
+            min = null;
+            size = 0;
+            return;
+        }
+
+        // Remove current minimum from root list
+        min.prev.next = min.next;
+        min.next.prev = min.prev;
+
+        // Arbitrarily choose min's next as new min and fix it when consolidating
+        min = min.next;
+
+        // Start successive-linking
+        consolidate();
+
+        size--;
+    }
+
+    private void consolidate() {
 
     }
 
