@@ -39,9 +39,8 @@ public class FibonacciHeap {
             min = node;
         } else {
             // Insert new node into root list next to current minimum
-            node = new HeapNode(key, min.next, min);
-            min.next.prev = node;
-            min.next = node;
+            node = new HeapNode(key);
+            insertNodeToList(node, min);
 
             // Update minimum pointer if needed
             if (key < min.key) {
@@ -79,21 +78,17 @@ public class FibonacciHeap {
             return;
         }
 
-        // Remove current minimum from root list
-        min.prev.next = min.next;
-        min.next.prev = min.prev;
-
         // Arbitrarily choose min's next as new min and fix it when consolidating
+        HeapNode oldMin = min;
         min = min.next;
+
+        // Remove current minimum from root list
+        removeNodeFromList(oldMin);
 
         // Start successive-linking
         consolidate();
 
         size--;
-    }
-
-    private void consolidate() {
-
     }
 
     /**
@@ -204,12 +199,99 @@ public class FibonacciHeap {
     //************************************************** Helper Methods ***********************************************
 
     /**
+     * Insert a node to the root list next to another node.
+     * @param node1 node to be inserted
+     * @param node2 node1 will be inserted next to this node
+     */
+    private void insertNodeToList(HeapNode node1, HeapNode node2) {
+        node1.next = node2.next;
+        node1.prev = node2;
+        node2.next.prev = node1;
+        node2.next = node1;
+    }
+
+    /**
+     * Removes a node from the linked list it's a member of.
+     * Removed node's next and prev pointers are set to itself.
+     * @param node node to be removed
+     */
+    private void removeNodeFromList(HeapNode node) {
+        node.prev.next = node.next;
+        node.next.prev = node.prev;
+        node.next = node;
+        node.prev = node;
+    }
+
+    /**
+     * Successively links trees in the heap.
+     * Pre-condition: the heap is not empty
+     * Post-condition: the heap contains one tree of each rank at most.
+     * Post-condition: minimum pointer is updated to the correct node.
+     */
+    private void consolidate() {
+        int maxTreeRank = (int)Math.ceil(Math.log(size) / Math.log(1.618)); // upper bound proved in class
+        HeapNode[] treeArr = new HeapNode[maxTreeRank];
+
+        // Consolidate heap trees according to the algorithm shown in class
+        HeapNode iterator = min;
+        do {
+            HeapNode root1 = iterator;
+            int rank = root1.rank;
+            while (treeArr[rank] != null) {
+                HeapNode root2 = treeArr[rank]; // we found another tree with the same rank
+                link(root1, root2);
+                treeArr[rank] = null;
+                rank++;
+            }
+            treeArr[rank] = root1;
+            iterator = iterator.next;
+        } while (iterator != min);
+
+        // Recreate root list with the consolidated trees
+        min = null;
+        for (HeapNode root : treeArr) {
+            if (root != null) {
+                if (min == null) {
+                    min = root;
+                } else {
+                    insertNodeToList(root, min);
+                    if (root.key < min.key) {
+                        min = root;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Link two trees. Tree whose root's key is bigger will be a child of the other tree.
+     * @param root1 first root
+     * @param root2 second root
+     */
+    private void link(HeapNode root1, HeapNode root2) {
+        if (root2.key < root1.key) {
+            HeapNode temp = root2;
+            root2 = root1;
+            root1 = temp;
+        }
+        // root1.key is now the minimum between the two
+        removeNodeFromList(root2);
+        if (root1.child != null) {
+            insertNodeToList(root2, root1.child);
+        } else {
+            root1.child = root2;
+        }
+        root1.rank++;
+        root2.parent = root1;
+        root2.isMarked = false;
+    }
+
+    /**
      * Insert node2's root list into node1's root list.
      * @param node1 root from the list that is being melded into
      * @param node2 root from the list being melded into node1's list
      */
     private void concatenate(HeapNode node1, HeapNode node2) {
-        // TODO: check this for errors
         node2.prev.next = node1.next;
         node1.next.prev = node2.prev;
         node2.prev = node1;
@@ -236,26 +318,14 @@ public class FibonacciHeap {
             this(key, 0, false, null, null, null, null);
         }
 
-        private HeapNode(int key, HeapNode next, HeapNode prev) {
-            this(key, 0, false, null, next, prev, null);
-        }
-
         private HeapNode(int key, int rank, boolean isMarked,
                          HeapNode child, HeapNode next, HeapNode prev, HeapNode parent) {
             this.key = key;
             this.rank = rank;
             this.isMarked = isMarked;
             this.child = child;
-            if (next != null) {
-                this.next = next;
-            } else {
-                this.next = this;
-            }
-            if (prev != null) {
-                this.prev = prev;
-            } else {
-                this.prev = this;
-            }
+            this.next = this;
+            this.prev = this;
             this.parent = parent;
         }
     }
