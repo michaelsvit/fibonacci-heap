@@ -140,8 +140,18 @@ public class FibonacciHeap {
      * Return a counters array, where the value of the i-th entry is the number of trees of order i in the heap.
      */
     public int[] countersRep() {
-        int[] arr = new int[42];
-        return arr; //	 to be replaced by student code
+        if (empty()) {
+            return new int[0];
+        }
+
+        int maxTreeRank = (int)Math.ceil(Math.log(size) / Math.log(1.618)); // upper bound proved in class
+        int[] arr = new int[maxTreeRank];
+        HeapNode iterator = min;
+        do {
+            arr[iterator.rank]++;
+            iterator = iterator.next;
+        } while (iterator != min);
+        return arr;
     }
 
     /**
