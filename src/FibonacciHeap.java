@@ -4,8 +4,12 @@
  * An implementation of fibonacci heap over non-negative integers.
  */
 public class FibonacciHeap {
+    private static int totalCuts;
+    private static int totalLinks;
+
     private HeapNode min;
     private int size;
+    private int potential;
 
     /**
      * Default constructor to initialize an empty heap.
@@ -13,6 +17,7 @@ public class FibonacciHeap {
     public FibonacciHeap() {
         this.min = null;
         this.size = 0;
+        this.potential = 0;
     }
 
     /**
@@ -48,6 +53,7 @@ public class FibonacciHeap {
             }
         }
         size++;
+        potential++;
         return node;
     }
 
@@ -61,12 +67,14 @@ public class FibonacciHeap {
             return;
         }
 
+        int childrenCount = 0;
         if (min.child != null) {
             // Set parent pointer of all children to null
             HeapNode iterator = min.child;
             do {
                 iterator.parent = null;
                 iterator = iterator.next;
+                childrenCount++;
             } while (iterator != min);
 
             // Add list of children as new roots into the heap
@@ -75,6 +83,7 @@ public class FibonacciHeap {
             // min is the only node in the heap
             min = null;
             size = 0;
+            potential = 0;
             return;
         }
 
@@ -89,6 +98,7 @@ public class FibonacciHeap {
         consolidate();
 
         size--;
+        potential += childrenCount - 1;
     }
 
     /**
@@ -109,6 +119,7 @@ public class FibonacciHeap {
         if (empty()) {
             this.min = heap2.min;
             this.size = heap2.size;
+            this.potential = heap2.potential;
             return;
         }
 
@@ -122,6 +133,7 @@ public class FibonacciHeap {
             }
 
             this.size += heap2.size;
+            this.potential += heap2.potential;
         }
     }
 
@@ -190,7 +202,7 @@ public class FibonacciHeap {
      * The potential equals to the number of trees in the heap plus twice the number of marked nodes in the heap.
      */
     public int potential() {
-        return 0; // should be replaced by student code
+        return potential;
     }
 
     /**
@@ -202,7 +214,7 @@ public class FibonacciHeap {
      * in its root.
      */
     public static int totalLinks() {
-        return 0; // should be replaced by student code
+        return totalLinks;
     }
 
     /**
@@ -212,7 +224,7 @@ public class FibonacciHeap {
      * A cut operation is the operation which diconnects a subtree from its parent (during decreaseKey/delete methods).
      */
     public static int totalCuts() {
-        return 0; // should be replaced by student code
+        return totalCuts;
     }
 
     //************************************************** Helper Methods ***********************************************
@@ -226,6 +238,7 @@ public class FibonacciHeap {
         if (parent != null) {
             if (!node.isMarked) {
                 node.isMarked = true;
+                potential += 2;
             } else {
                 cut(node);
                 cascadingCut(parent);
@@ -241,8 +254,14 @@ public class FibonacciHeap {
         node.parent.rank--;
         removeNodeFromList(node);
         insertNodeToList(node, min);
+        potential++;
+        if (node.isMarked) {
+            potential -= 2;
+        }
         node.parent = null;
         node.isMarked = false;
+
+        totalCuts++;
     }
 
     /**
@@ -331,6 +350,8 @@ public class FibonacciHeap {
         root1.rank++;
         root2.parent = root1;
         root2.isMarked = false;
+
+        totalLinks++;
     }
 
     /**
