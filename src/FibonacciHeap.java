@@ -160,7 +160,8 @@ public class FibonacciHeap {
      * Deletes the node x from the heap.
      */
     public void delete(HeapNode x) {
-        return; // should be replaced by student code
+        decreaseKey(x, x.key + 1); // decreases key to a value of -1
+        deleteMin();
     }
 
     /**
@@ -170,7 +171,15 @@ public class FibonacciHeap {
      * to reflect this chage (for example, the cascading cuts procedure should be applied if needed).
      */
     public void decreaseKey(HeapNode x, int delta) {
-        return; // should be replaced by student code
+        x.key -= delta;
+        if (x.parent != null && x.key < x.parent.key) {
+            HeapNode parent = x.parent;
+            cut(x);
+            cascadingCut(parent);
+        }
+        if (x.key < min.key) {
+            min = x;
+        }
     }
 
     /**
@@ -207,6 +216,34 @@ public class FibonacciHeap {
     }
 
     //************************************************** Helper Methods ***********************************************
+
+    /**
+     * Recursively cut sub-trees from the tree until we reach the root of the whole tree or an unmarked node.
+     * @param node root of the sub-tree
+     */
+    private void cascadingCut(HeapNode node) {
+        HeapNode parent = node.parent;
+        if (parent != null) {
+            if (!node.isMarked) {
+                node.isMarked = true;
+            } else {
+                cut(node);
+                cascadingCut(parent);
+            }
+        }
+    }
+
+    /**
+     * Cuts sub-tree starting at the given node from its parent and adds it to root list.
+     * @param node root of the sub-tree
+     */
+    private void cut(HeapNode node) {
+        node.parent.rank--;
+        removeNodeFromList(node);
+        insertNodeToList(node, min);
+        node.parent = null;
+        node.isMarked = false;
+    }
 
     /**
      * Insert a node to the root list next to another node.
