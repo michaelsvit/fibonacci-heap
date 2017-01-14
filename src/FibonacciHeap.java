@@ -252,6 +252,13 @@ public class FibonacciHeap {
      */
     private void cut(HeapNode node) {
         node.parent.rank--;
+        if (node.parent.child == node) {
+            if (node.next == node) {
+                node.parent.child = null;
+            } else {
+                node.parent.child = node.next;
+            }
+        }
         removeNodeFromList(node);
         insertNodeToList(node, min);
         potential++;
