@@ -9,7 +9,8 @@ public class FibonacciHeap {
 
     private HeapNode min;
     private int size;
-    private int potential;
+    private int markedCount;
+    private int treesCount;
 
     /**
      * Default constructor to initialize an empty heap.
@@ -17,7 +18,8 @@ public class FibonacciHeap {
     public FibonacciHeap() {
         this.min = null;
         this.size = 0;
-        this.potential = 0;
+        this.markedCount = 0;
+        this.treesCount = 0;
     }
 
     /**
@@ -53,7 +55,7 @@ public class FibonacciHeap {
             }
         }
         size++;
-        potential++;
+        treesCount++;
         return node;
     }
 
@@ -67,23 +69,22 @@ public class FibonacciHeap {
             return;
         }
 
-        int childrenCount = 0;
         if (min.child != null) {
             // Set parent pointer of all children to null
             HeapNode iterator = min.child;
             do {
                 iterator.parent = null;
                 iterator = iterator.next;
-                childrenCount++;
-            } while (iterator != min);
+            } while (iterator != min.child);
 
             // Add list of children as new roots into the heap
             concatenate(min, min.child);
+            treesCount += min.rank;
         } else if (min.next == min) {
             // min is the only node in the heap
             min = null;
             size = 0;
-            potential = 0;
+            treesCount = 0;
             return;
         }
 
@@ -93,12 +94,13 @@ public class FibonacciHeap {
 
         // Remove current minimum from root list
         removeNodeFromList(oldMin);
+        treesCount--;
+        size--;
 
         // Start successive-linking
-        consolidate();
-
-        size--;
-        potential += childrenCount - 1;
+        if (treesCount > 1) {
+            consolidate();
+        }
     }
 
     /**
@@ -119,7 +121,8 @@ public class FibonacciHeap {
         if (empty()) {
             this.min = heap2.min;
             this.size = heap2.size;
-            this.potential = heap2.potential;
+            this.markedCount = heap2.markedCount;
+            this.treesCount = heap2.treesCount;
             return;
         }
 
@@ -133,7 +136,8 @@ public class FibonacciHeap {
             }
 
             this.size += heap2.size;
-            this.potential += heap2.potential;
+            this.markedCount += heap2.markedCount;
+            this.treesCount += heap2.treesCount;
         }
     }
 
@@ -202,7 +206,7 @@ public class FibonacciHeap {
      * The potential equals to the number of trees in the heap plus twice the number of marked nodes in the heap.
      */
     public int potential() {
-        return potential;
+        return treesCount + 2*markedCount;
     }
 
     /**
@@ -238,7 +242,7 @@ public class FibonacciHeap {
         if (parent != null) {
             if (!node.isMarked) {
                 node.isMarked = true;
-                potential += 2;
+                markedCount++;
             } else {
                 cut(node);
                 cascadingCut(parent);
@@ -261,9 +265,9 @@ public class FibonacciHeap {
         }
         removeNodeFromList(node);
         insertNodeToList(node, min);
-        potential++;
+        treesCount++;
         if (node.isMarked) {
-            potential -= 2;
+            markedCount--;
         }
         node.parent = null;
         node.isMarked = false;
@@ -306,19 +310,28 @@ public class FibonacciHeap {
         HeapNode[] treeArr = new HeapNode[maxTreeRank];
 
         // Consolidate heap trees according to the algorithm shown in class
+        int range = treesCount;
         HeapNode iterator = min;
-        do {
+        for(int i = 0; i < range; i++) {
             HeapNode root1 = iterator;
+            iterator = iterator.next;
             int rank = root1.rank;
             while (treeArr[rank] != null) {
                 HeapNode root2 = treeArr[rank]; // we found another tree with the same rank
+
+                // Make sure root1 has the smaller key between the roots
+                if (root2.key < root1.key) {
+                    HeapNode temp = root2;
+                    root2 = root1;
+                    root1 = temp;
+                }
+
                 link(root1, root2);
                 treeArr[rank] = null;
                 rank++;
             }
             treeArr[rank] = root1;
-            iterator = iterator.next;
-        } while (iterator != min);
+        }
 
         // Recreate root list with the consolidated trees
         min = null;
@@ -326,6 +339,8 @@ public class FibonacciHeap {
             if (root != null) {
                 if (min == null) {
                     min = root;
+                    root.next = root;
+                    root.prev = root;
                 } else {
                     insertNodeToList(root, min);
                     if (root.key < min.key) {
@@ -342,12 +357,6 @@ public class FibonacciHeap {
      * @param root2 second root
      */
     private void link(HeapNode root1, HeapNode root2) {
-        if (root2.key < root1.key) {
-            HeapNode temp = root2;
-            root2 = root1;
-            root1 = temp;
-        }
-        // root1.key is now the minimum between the two
         removeNodeFromList(root2);
         if (root1.child != null) {
             insertNodeToList(root2, root1.child);
@@ -358,6 +367,7 @@ public class FibonacciHeap {
         root2.parent = root1;
         root2.isMarked = false;
 
+        treesCount--;
         totalLinks++;
     }
 
@@ -381,7 +391,7 @@ public class FibonacciHeap {
      * another file
      */
     public class HeapNode {
-        private int key;
+        public int key; // TODO: change to private
         private int rank;
         private boolean isMarked;
         private HeapNode child;
@@ -402,6 +412,23 @@ public class FibonacciHeap {
             this.next = this;
             this.prev = this;
             this.parent = parent;
+        }
+
+        // TODO: Remove, this is for testing only
+        private void print(int level) {
+            HeapNode curr = this;
+            do {
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < level; i++) {
+                    sb.append("  ");
+                }
+                sb.append(curr.key);
+                System.out.println(sb.toString());
+                if (curr.child != null) {
+                    curr.child.print(level + 1);
+                }
+                curr = curr.next;
+            } while (curr != this);
         }
     }
 }
