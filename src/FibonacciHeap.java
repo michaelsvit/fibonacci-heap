@@ -4,8 +4,8 @@
  * An implementation of fibonacci heap over non-negative integers.
  */
 public class FibonacciHeap {
-    private static int totalCuts;
-    private static int totalLinks;
+    public static int totalCuts; // TODO: change to private
+    public static int totalLinks; // TODO: change to private
 
     private HeapNode min;
     private int size;
@@ -393,29 +393,28 @@ public class FibonacciHeap {
     public class HeapNode {
         public int key; // TODO: change to private
         private int rank;
-        private boolean isMarked;
-        private HeapNode child;
-        private HeapNode next;
+        public boolean isMarked; // TODO: change to private
+        public HeapNode child; // TODO: change to private
+        public HeapNode next; // TODO: change to private
         private HeapNode prev;
-        private HeapNode parent;
+        public HeapNode parent; // TODO: change to private
 
         public HeapNode(int key) {
-            this(key, 0, false, null, null, null, null);
-        }
-
-        private HeapNode(int key, int rank, boolean isMarked,
-                         HeapNode child, HeapNode next, HeapNode prev, HeapNode parent) {
             this.key = key;
-            this.rank = rank;
-            this.isMarked = isMarked;
-            this.child = child;
+            this.rank = 0;
+            this.isMarked = false;
+            this.child = null;
             this.next = this;
             this.prev = this;
-            this.parent = parent;
+            this.parent = null;
+        }
+
+        public int getKey() {
+            return key;
         }
 
         // TODO: Remove, this is for testing only
-        private void print(int level) {
+        public void print(int level) {
             HeapNode curr = this;
             do {
                 StringBuilder sb = new StringBuilder();
