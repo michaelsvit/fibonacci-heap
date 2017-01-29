@@ -561,6 +561,36 @@ public class FibonacciHeapTest {
         }
     }
 
+    static private class TestCountersRep extends Test {
+        public TestCountersRep() {
+            super("Test countersRep");
+        }
+
+        @Override
+        protected void test() {
+            int[] vals = createValues(100);
+            FibonacciHeap heap = new FibonacciHeap();
+
+            for (int i = 0; i < vals.length; i++) {
+                heap.insert(vals[i]);
+            }
+
+            for (int i = 0; i < vals.length; i++) {
+                heap.deleteMin();
+                int[] countersRep = heap.countersRep();
+                for (int counter : countersRep) {
+                    if (counter > 1) {
+                        setFailed("More than one tree of some rank after deleteMin");
+                    }
+                }
+            }
+
+            if (!heap.empty()) {
+                setFailed("Heap is not empty after deleting all nodes");
+            }
+        }
+    }
+
     static private class StatisticsTest extends Test {
 
         public StatisticsTest() {
@@ -657,6 +687,7 @@ public class FibonacciHeapTest {
             new TestDecreaseKey(),
             new TestPotential(),
             new TestEmpty(),
+            new TestCountersRep(),
             new StatisticsTest()
         };
 
