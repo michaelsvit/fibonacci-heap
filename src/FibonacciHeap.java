@@ -3,9 +3,10 @@
  * <p>
  * An implementation of fibonacci heap over non-negative integers.
  */
+
 public class FibonacciHeap {
-    public static int totalCuts; // TODO: change to private
-    public static int totalLinks; // TODO: change to private
+    private static int totalCuts;
+    private static int totalLinks;
 
     private HeapNode min;
     private int size;
@@ -161,7 +162,7 @@ public class FibonacciHeap {
         }
 
         int maxTreeRank = (int)Math.ceil(Math.log(size) / Math.log(1.618)); // upper bound proved in class
-        int[] arr = new int[maxTreeRank];
+        int[] arr = new int[maxTreeRank + 1];
         HeapNode iterator = min;
         do {
             arr[iterator.rank]++;
@@ -307,7 +308,7 @@ public class FibonacciHeap {
      */
     private void consolidate() {
         int maxTreeRank = (int)Math.ceil(Math.log(size) / Math.log(1.618)); // upper bound proved in class
-        HeapNode[] treeArr = new HeapNode[maxTreeRank];
+        HeapNode[] treeArr = new HeapNode[maxTreeRank + 1];
 
         // Consolidate heap trees according to the algorithm shown in class
         int range = treesCount;
@@ -391,13 +392,13 @@ public class FibonacciHeap {
      * another file
      */
     public class HeapNode {
-        public int key; // TODO: change to private
+        public int key;
         private int rank;
-        public boolean isMarked; // TODO: change to private
-        public HeapNode child; // TODO: change to private
-        public HeapNode next; // TODO: change to private
+        private boolean isMarked;
+        private HeapNode child;
+        private HeapNode next;
         private HeapNode prev;
-        public HeapNode parent; // TODO: change to private
+        private HeapNode parent;
 
         public HeapNode(int key) {
             this.key = key;
@@ -411,23 +412,6 @@ public class FibonacciHeap {
 
         public int getKey() {
             return key;
-        }
-
-        // TODO: Remove, this is for testing only
-        public void print(int level) {
-            HeapNode curr = this;
-            do {
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < level; i++) {
-                    sb.append("  ");
-                }
-                sb.append(curr.key);
-                System.out.println(sb.toString());
-                if (curr.child != null) {
-                    curr.child.print(level + 1);
-                }
-                curr = curr.next;
-            } while (curr != this);
         }
     }
 }
